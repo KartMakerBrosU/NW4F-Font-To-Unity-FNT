@@ -28,7 +28,7 @@ namespace BFFNTtoFNT
             BFFNT wiiU_file = new BFFNT(ffnt_filedir);
             wiiU_file.ReadBFFNT();
 
-            //Get CharacterRect's for Unity Font
+            //Get CharacterRect's for Unity Font from BFFNT. 
             CharacterRect[] getCharRects()
             {
                 List<CharMap> chars = new List<CharMap>();
@@ -47,22 +47,22 @@ namespace BFFNTtoFNT
                 int cellPerRow;
                 int ascent;
                 int baselinepos;
-                int getKernOffset(int charCode)
-                {
-                    CharKern[] charKerns = wiiU_file.kerningInfo.charKerns;
-                    if (charCode > charKerns.Length)
-                    {
-                        return 0;
-                    }
-                    else if (charKerns[charCode] == null)
-                    {
-                        return 0;
-                    }
-                    else
-                    {
-                        return charKerns[charCode].offset;
-                    }
-                }
+                //int getKernOffset(int charCode)
+                //{
+                //    KernFirstWord[] charKerns = wiiU_file.kerningInfo.charKerns;
+                //    if (charCode > charKerns.Length)
+                //    {
+                //        return 0;
+                //    }
+                //    else if (charKerns[charCode] == null)
+                //    {
+                //        return 0;
+                //    }
+                //    else
+                //    {
+                //        return 0; //charKerns[charCode].offset;
+                //    }
+                //}
                 for (int i = 0; i < wiiU_file.charInfo.Length; i++)
                 {
                     cellWidth = wiiU_file.texInfo.cellWidth + 1;
@@ -104,7 +104,7 @@ namespace BFFNTtoFNT
                             //width = cellWidth,
                             height = -cellHeight
                         },
-                        advance = (int)(glyphWidth) + getKernOffset(wiiU_file.charInfo[i].charCode),
+                        advance = (int)(glyphWidth),
                         //advance = (int)(cellWidth),
                         flipped = 0
                     };
@@ -112,6 +112,30 @@ namespace BFFNTtoFNT
 
                 return outChars;
             }
+
+            //Get the KerningValues for Unity Font from BFFNT. 
+            KerningValues[] getKerningValues()
+            {
+                List<KerningValues> kerningValues = new List<KerningValues>();
+                foreach (Character character in wiiU_file.charInfo)
+                {
+                    foreach (KernSecondWord kernSecond in character.kernWords)
+                    {
+
+                        KerningValues thisKern = new KerningValues
+                        {
+                            first = new Dictionary<int, int>
+                            {
+                                {character.charCode, kernSecond.charCode_Second}
+                            },
+                            second = kernSecond.kernOffset,
+                        };
+                        kerningValues.Add(thisKern);
+                    }
+                }
+                return kerningValues.ToArray();
+            }
+
 
             //Create the UnityFont.
             var Font = new FontSettings
@@ -149,7 +173,7 @@ namespace BFFNTtoFNT
                     m_CharacterPadding = 1,
                     m_ConvertCase = 0,
                     m_CharacterRects = getCharRects(),
-                    m_KerningValues = new string[0],
+                    m_KerningValues = getKerningValues(),
                     m_PixelScale = 1f,
                     m_Ascent = 0f,
                     m_Descent = 0f,
@@ -162,6 +186,7 @@ namespace BFFNTtoFNT
                     m_FontRenderingMode = 0,
                     m_UseLegacyBoundsCalculation = 0,
                     m_ShouldRoundAdvanceValue = 1,
+                    //TODO: Add material information here. 
                 },
             };
 

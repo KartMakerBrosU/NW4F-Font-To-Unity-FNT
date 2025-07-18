@@ -44,7 +44,7 @@ namespace BFFNTtoFNT
                         ParseTextureInfo(bffnt, file);
                         break;
                     case "CWDH":
-                        ParseCharWidhtInfo(bffnt, file);
+                        ParseCharWidthtInfo(bffnt, file);
                         break;
                     case "CMAP":
                         ParseCodeMap(bffnt, file);
@@ -107,6 +107,9 @@ namespace BFFNTtoFNT
                 fileSize = checkFileSize(),
                 secNum = file.ReadInt16(bom)
             };
+
+            //TODO: Maybe add version check here. Really only tested with SMMU fonts. 
+
             //Set position to end of section.
             file.Stream.Position = initPos + bffnt.header.secSize;
         }
@@ -208,7 +211,7 @@ namespace BFFNTtoFNT
         /// <summary>
         /// Parses the CWDH Header
         /// </summary>
-        private void ParseCharWidhtInfo(BFFNT bffnt, EndianStreamReader file)
+        private void ParseCharWidthtInfo(BFFNT bffnt, EndianStreamReader file)
         {
             RegionRange charWidthRange = new RegionRange
             {
@@ -353,21 +356,35 @@ namespace BFFNTtoFNT
         /// </summary>
         private void ParseKerning(BFFNT bffnt, EndianStreamReader file)
         {
+            //get initial variables. 
             long initPos = file.Stream.Position - 4;
-            int size = file.ReadInt32(bffnt.header.endian);
-            file.Stream.Position = initPos + size;
-            //RegionRange kernRange = new RegionRange
-            //{
-            //    StartPosition = file.Position - 4,
-            //    Size = file.ReadInt32(bffnt.header.endian),
-            //};
-            //file.EnableRegionView(kernRange); // Enable reading range only for the kerning section.
-            //file.Position += 8; // Skip header and size info (already processed)
+            int secSize = file.ReadInt32(bffnt.header.endian);
+            long startPos = file.Stream.Position;
+            int numKernFirst = file.ReadInt16(bffnt.header.endian);
 
-            //while(file.Position < file.Length)
-            //{
-            //    int glyphIDX = file.ReadInt16(bffnt.header.endian); //FIX Identifying charCode via glyphIDX;
-            //}
+            for (int i = 0; i < numKernFirst; i++)
+            {
+                int charCode = file.ReadUInt16(bffnt.header.endian);
+                int charIDX = bffnt.getCharInfoIndex(charCode);
+                int scndWord_offset = file.ReadUInt16(bffnt.header.endian) * 2;
+                long nextFirstWordPos = file.Stream.Position;
+
+                file.Stream.Position = startPos + scndWord_offset;
+                int countSecWord = file.ReadUInt16(bffnt.header.endian);
+                List<KernSecondWord> kernSecondWords = new List<KernSecondWord>();
+                for (int j = 0; j < countSecWord; j++)
+                {
+                    KernSecondWord thisSecWord = new KernSecondWord
+                    {
+                        charCode_Second = file.ReadUInt16(bffnt.header.endian),
+                        kernOffset = file.ReadInt16(bffnt.header.endian)
+                    };
+                    kernSecondWords.Add(thisSecWord);
+                }
+                bffnt.charInfo[charIDX].kernWords = kernSecondWords.ToArray();
+                file.Stream.Position = nextFirstWordPos;
+            }
+            file.Stream.Position = initPos + secSize;
         }
 
         /// <summary>

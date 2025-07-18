@@ -53,7 +53,7 @@ namespace BFFNTtoFNT.Classes
         public int m_CharacterPadding { get; set; }
         public int m_ConvertCase { get; set; }
         public CharacterRect[] m_CharacterRects { get; set; } = Array.Empty<CharacterRect>();
-        public string[] m_KerningValues { get; set; } = Array.Empty<string>();
+        public KerningValues[] m_KerningValues { get; set; } = Array.Empty<KerningValues>();
         public float m_PixelScale { get; set; }
         public int m_FontData { get; set; }
         public float m_Ascent { get; set; }
@@ -64,5 +64,11 @@ namespace BFFNTtoFNT.Classes
         public int m_FontRenderingMode { get; set; }
         public int m_UseLegacyBoundsCalculation { get; set; }
         public int m_ShouldRoundAdvanceValue { get; set; }
+    }
+    public class KerningValues
+    {
+        public Dictionary<int, int> first = new Dictionary<int, int>();
+        //I Know it says second but this means the offset. 
+        public int second { get; set; } = 0;
     }
 }

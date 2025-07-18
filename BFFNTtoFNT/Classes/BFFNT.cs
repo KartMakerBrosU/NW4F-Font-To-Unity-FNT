@@ -35,7 +35,6 @@ namespace BFFNTtoFNT.Classes
         public TGLP texInfo;
         public CWDH charWidthInfo;
         public CMAP[] charMapInfo;
-        public KRNG kerningInfo;
         public Character[] charInfo;
         public BFFNT(string filename)
         {
@@ -45,13 +44,31 @@ namespace BFFNTtoFNT.Classes
             texInfo = new TGLP();
             charWidthInfo = new CWDH();
             charMapInfo = Array.Empty<CMAP>();
-            kerningInfo = new KRNG();
             charInfo = Array.Empty<Character>();
         }
         public void ReadBFFNT()
         {
             ReadBFFNT readBFFNT = new ReadBFFNT(this);
             readBFFNT.ParseBFFNT();
+        }
+        /// <summary>
+        /// Uses binary search to find the index of a given charactercode. 
+        /// </summary>
+        public int getCharInfoIndex(int charCode)
+        {
+            int low = 0, high = charInfo.Length-1;
+            while (low <= high)
+            {
+                int mid = low + (high-low)/2;
+
+                if (charInfo[mid].charCode == charCode)
+                    return mid;
+                if (charInfo[mid].charCode < charCode)
+                    low = mid + 1;
+                else
+                    high = mid - 1;
+            }
+            return -1;
         }
     }
     public class FFNT
@@ -118,12 +135,6 @@ namespace BFFNTtoFNT.Classes
         public int mapDataSize { get; set; }
         public CharMap[] charMaps { get; set; } = Array.Empty<CharMap>();
     }
-    public class KRNG
-    {
-        public string magic { get; set; } = "";
-        public int secSize { get; set; }
-        public CharKern[] charKerns { get; set; } = Array.Empty<CharKern>();
-    }
     public class CharMap
     {
         public int charCode { get; set; } = 0;
@@ -135,18 +146,17 @@ namespace BFFNTtoFNT.Classes
         public int charWidth { get; set; }
         public int glyphWidth { get; set; }
     }
-    public class CharKern
+    public class KernSecondWord
     {
-        public int charCode { get; set; } = 0;
-        public int offset { get; set; } = 0;
+        public int charCode_Second { get; set; } = 0;
+        public int kernOffset { get; set; } = 0;
     }
-
     public class Character
     {
         public int charCode { get; set; } = 0;
         public int charWidth { get; set; } = 0;
         public int glyphWidth { get; set; } = 0;
         public int leftDistance { get; set; } = 0;
-        public int kernOffset { get; set; } = 0;
+        public KernSecondWord[] kernWords { get; set; } = Array.Empty<KernSecondWord>();
     }
 }
