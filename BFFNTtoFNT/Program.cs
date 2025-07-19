@@ -24,6 +24,7 @@ namespace BFFNTtoFNT
                 ffnt_filedir = ofd.FileName;
                 
             }
+
             //Read and Parse the BFFNT File.
             BFFNT wiiU_file = new BFFNT(ffnt_filedir);
             wiiU_file.ReadBFFNT();
@@ -135,7 +136,6 @@ namespace BFFNTtoFNT
                 }
                 return kerningValues.ToArray();
             }
-
 
             //Create the UnityFont.
             var Font = new FontSettings

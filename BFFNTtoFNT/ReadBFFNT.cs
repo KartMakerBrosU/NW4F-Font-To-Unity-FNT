@@ -92,7 +92,7 @@ namespace BFFNTtoFNT
                 int size = file.ReadInt32(bom);
                 if(size != (file.Stream.Length))
                 {
-                    throw new Exception("Internal FileSize does not match actual FileSize");
+                    ThrowException(file, "Internal FileSize does not match actual FileSize");
                 }
                 return size;
             }
@@ -127,7 +127,7 @@ namespace BFFNTtoFNT
                 //Dont know how this affects the process, so accept every form. 
                 if(fnt == 0x00 || fnt > 0x03)
                 {
-                    throw new Exception("Unknown Font Type");
+                    ThrowException(file, "Unknown Font Type");
                 }
                 return (FontType) fnt;
             }
@@ -137,19 +137,19 @@ namespace BFFNTtoFNT
                 //Continue only if Unicode Encoding is used.
                 if (enc > 0x03)
                 {
-                    throw new Exception("Unknown Encoding");
+                    ThrowException(file, "Unknown Encoding");
                 }
                 if (enc == 0)
                 {
-                    throw new Exception("UTF 8 Encoding not supported.");
+                    ThrowException(file, "UTF 8 Encoding not supported.");
                 }
                 if (enc == 2)
                 {
-                    throw new Exception("ShiftJIS Encoding not supported.");
+                    ThrowException(file, "ShiftJIS Encoding not supported.");
                 }
                 if (enc == 3)
                 {
-                    throw new Exception("CP1252 Encoding not supported.");
+                    ThrowException(file, "CP1252 Encoding not supported.");
                 }
                 return (GlyphCode) enc;
             }
@@ -202,7 +202,7 @@ namespace BFFNTtoFNT
             //TODO: Handle Multiple Sheets
             if(bffnt.texInfo.sheetNum != 1)
             {
-                throw new Exception("Expected one Texture Sheet, got: " +  bffnt.texInfo.sheetNum);
+                ThrowException(file, "Expected one Texture Sheet, got: " +  bffnt.texInfo.sheetNum);
             }
             //Set position to end of section.
             file.Stream.Position = initPos + bffnt.texInfo.secSize;
@@ -263,7 +263,7 @@ namespace BFFNTtoFNT
                 switch (mapMethod)
                 {
                     case MapMethod.Direct:
-                        throw new Exception("Direct Mapping Method not Implemented yet");
+                        ThrowException(file, "Direct Mapping Method not Implemented yet");
                         //outCharMap = new CharMap[lastCharCode - firstCharCode];
                         //int startIndex = file.ReadInt16(bffnt.header.endian);
                         //file.Stream.Position += 2;
@@ -276,9 +276,9 @@ namespace BFFNTtoFNT
                         //    };
                         //    outCharMap[i] = charMap;
                         //}
-                        //break;
+                        break;
                     case MapMethod.Table:
-                        throw new Exception("Table Mapping Method not Implemented yet");
+                        ThrowException(file, "Table Mapping Method not Implemented yet");
                         //outCharMap = new CharMap[lastCharCode - firstCharCode];
                         //for (int i = 0; i < outCharMap.Length; i++)
                         //{
@@ -294,7 +294,7 @@ namespace BFFNTtoFNT
                         //    };
                         //    outCharMap[i] = charMap;
                         //}
-                        //break;
+                        break;
 
                     case MapMethod.Scan:
                         // new Exception("Scan Mapping Method not Implemented yet");
@@ -401,8 +401,18 @@ namespace BFFNTtoFNT
         //Throws Custom exception and closes the file. 
         private void ThrowException(EndianStreamReader file, string message)
         {
-            file.Stream.Close();
-            throw new Exception(message);
+            try
+            {
+                file?.Stream?.Close();
+                MessageBox.Show(message, "Error when parsing BFFNT file.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Exit();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error during fatal shutdown: " + ex.Message);
+
+                Environment.Exit(-1);
+            }
         }
     }
 }
