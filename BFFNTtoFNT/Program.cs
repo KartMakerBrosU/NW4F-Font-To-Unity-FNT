@@ -33,47 +33,34 @@ namespace BFFNTtoFNT
             CharacterRect[] getCharRects()
             {
                 CharacterRect[] outChars = new CharacterRect[wiiU_file.charInfo.Length];
-                float leftDistance;
-                float cellWidth;
-                float cellHeight;
-                float textureWidth;
-                float textureHeight;
+                float xOffset;
                 float glyphWidth;
+                float glyphHeight;
+                float sheetWidth;
+                float sheetHeight;
                 float charWidth;
-                int cellPerRow;
+                int glyphsPerRow;
                 int ascent;
                 int baselinepos;
-                //int getKernOffset(int charCode)
-                //{
-                //    KernFirstWord[] charKerns = wiiU_file.kerningInfo.charKerns;
-                //    if (charCode > charKerns.Length)
-                //    {
-                //        return 0;
-                //    }
-                //    else if (charKerns[charCode] == null)
-                //    {
-                //        return 0;
-                //    }
-                //    else
-                //    {
-                //        return 0; //charKerns[charCode].offset;
-                //    }
-                //}
+
+
+                int charAdvance;
+
                 for (int i = 0; i < wiiU_file.charInfo.Length; i++)
                 {
-                    cellWidth = wiiU_file.texInfo.cellWidth + 1;
-                    cellHeight = wiiU_file.texInfo.cellHeight;
-                    //leftDistance = wiiU_file.charWidthInfo.charWidths[i].leftDistance;
-                    leftDistance = wiiU_file.charInfo[i].leftDistance;
-                    //charWidth = wiiU_file.charWidthInfo.charWidths[i].charWidth;
+                    glyphWidth = wiiU_file.texInfo.glyphWidth + 1;
+                    glyphHeight = wiiU_file.texInfo.glyphHeight;
+                    xOffset = wiiU_file.charInfo[i].xOffset;
                     charWidth = wiiU_file.charInfo[i].charWidth;
-                    //glyphWidth = wiiU_file.charWidthInfo.charWidths[i].glyphWidth;
-                    glyphWidth = wiiU_file.charInfo[i].glyphWidth;
-                    textureWidth = wiiU_file.texInfo.texWidth;
-                    textureHeight = wiiU_file.texInfo.texHeight;
-                    cellPerRow = wiiU_file.texInfo.cellPerRow;
+                    charAdvance = wiiU_file.charInfo[i].charAdvance;
+                    sheetWidth = wiiU_file.texInfo.sheetWidth;
+                    sheetHeight = wiiU_file.texInfo.sheetHeight;
+                    glyphsPerRow = wiiU_file.texInfo.glyphsPerRow;
                     ascent = wiiU_file.fontInfo.ascent;
                     baselinepos = wiiU_file.texInfo.baseLinePos;
+
+                    int xPos = i % glyphsPerRow;//Which cell in the row. 
+                    int yPos = i / glyphsPerRow;//Which row the cell is in.
                     outChars[i] = new CharacterRect
                     {
                         serializedVersion = 2,
@@ -81,27 +68,21 @@ namespace BFFNTtoFNT
                         uv = new UV
                         {
                             serializedVersion = 2,
-                            //x = ((cellWidth * (i % cellPerRow))+leftDistance) / textureWidth,
-                            x = ((cellWidth * (i % cellPerRow)) + 1) / textureWidth, //(i % cellPerRow)
-                            y = 1 - (((cellHeight * (i / cellPerRow)) + 1 + cellHeight + (i / cellPerRow)) / textureHeight),
+                            x = ((glyphWidth * xPos) + 1) / sheetWidth,
+                            y = 1 - (((glyphHeight * yPos) + 1 + glyphHeight + yPos) / sheetHeight),
 
-                            width = charWidth / textureWidth,
-                            //width = cellWidth/textureWidth,
-                            height = cellHeight / textureHeight,
+                            width = charWidth / sheetWidth,
+                            height = glyphHeight / sheetHeight,
                         },
                         vert = new VERT
                         {
                             serializedVersion = 2,
-                            x = leftDistance,
+                            x = xOffset,
                             y = baselinepos - ascent,
-                            //x = 0,
-                            //y = 0,
                             width = charWidth,
-                            //width = cellWidth,
-                            height = -cellHeight
+                            height = -glyphHeight
                         },
-                        advance = (int)(glyphWidth),
-                        //advance = (int)(cellWidth),
+                        advance = (int)(charAdvance),
                         flipped = 0
                     };
                 }
@@ -157,7 +138,7 @@ namespace BFFNTtoFNT
                     {
                         { "fileID", "0" },
                     },
-                    m_FontSize = wiiU_file.texInfo.cellHeight,
+                    m_FontSize = wiiU_file.texInfo.glyphHeight,
                     m_Texture = new Dictionary<string, string>
                     {
                         { "fileID", "0" },

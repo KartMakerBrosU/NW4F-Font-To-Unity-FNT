@@ -185,24 +185,24 @@ namespace BFFNTtoFNT
             {
                 magic = "TGLP",
                 secSize = file.ReadInt32(bffnt.header.endian),
-                cellWidth = file.ReadByte(),
-                cellHeight = file.ReadByte(),
-                sheetNum = file.ReadByte(),
-                maxCharWidth = file.ReadByte(),
+                glyphWidth = file.ReadByte(),
+                glyphHeight = file.ReadByte(),
+                numOfSheets = file.ReadByte(),
+                maxGlyphWidth = file.ReadByte(),
                 sheetSize = file.ReadInt32(bffnt.header.endian),
                 baseLinePos = file.ReadInt16(bffnt.header.endian),
-                texFormat = file.ReadInt16(bffnt.header.endian),
-                cellPerRow = file.ReadInt16(bffnt.header.endian),
-                cellPerCol = file.ReadInt16(bffnt.header.endian),
-                texWidth = file.ReadInt16(bffnt.header.endian),
-                texHeight = file.ReadInt16(bffnt.header.endian),
-                texDataOffset = file.ReadInt32(bffnt.header.endian)
+                sheetFormat = file.ReadInt16(bffnt.header.endian),
+                glyphsPerRow = file.ReadInt16(bffnt.header.endian),
+                glyphsPerCol = file.ReadInt16(bffnt.header.endian),
+                sheetWidth = file.ReadInt16(bffnt.header.endian),
+                sheetHeight = file.ReadInt16(bffnt.header.endian),
+                sheetDataOffset = file.ReadInt32(bffnt.header.endian)
             };
             //Only continue if ther is one texture sheet. 
             //TODO: Handle Multiple Sheets
-            if(bffnt.texInfo.sheetNum != 1)
+            if(bffnt.texInfo.numOfSheets != 1)
             {
-                ThrowException(file, "Expected one Texture Sheet, got: " +  bffnt.texInfo.sheetNum);
+                ThrowException(file, "Expected one Texture Sheet, got: " +  bffnt.texInfo.numOfSheets);
             }
             //Set position to end of section.
             file.Stream.Position = initPos + bffnt.texInfo.secSize;
@@ -230,9 +230,9 @@ namespace BFFNTtoFNT
             {
                 charInfo[i] = new Character
                 {
-                    leftDistance = (sbyte)file.ReadByte(),
+                    xOffset = (sbyte)file.ReadByte(),
                     charWidth = file.ReadByte(),
-                    glyphWidth = file.ReadByte(),
+                    charAdvance = file.ReadByte(),
                 };
             }
             bffnt.charInfo = charInfo;

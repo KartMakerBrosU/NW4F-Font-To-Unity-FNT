@@ -102,18 +102,18 @@ namespace BFFNTtoFNT.Classes
     {
         public string magic { get; set; } = "";
         public int secSize { get; set; }
-        public int cellWidth { get; set; }
-        public int cellHeight { get; set; }
-        public int sheetNum { get; set; }
-        public int maxCharWidth { get; set; }
+        public int glyphWidth { get; set; }
+        public int glyphHeight { get; set; }
+        public int numOfSheets { get; set; }
+        public int maxGlyphWidth { get; set; }
         public int sheetSize { get; set; }
         public int baseLinePos { get; set; }
-        public int texFormat { get; set; }
-        public int cellPerRow { get; set; }
-        public int cellPerCol { get; set; }
-        public int texWidth { get; set; }
-        public int texHeight { get; set; }
-        public int texDataOffset { get; set; }
+        public int sheetFormat { get; set; }
+        public int glyphsPerRow { get; set; }
+        public int glyphsPerCol { get; set; }
+        public int sheetWidth { get; set; }
+        public int sheetHeight { get; set; }
+        public int sheetDataOffset { get; set; }
     }
     public class CWDH
     {
@@ -139,8 +139,8 @@ namespace BFFNTtoFNT.Classes
     {
         public int charCode { get; set; } = 0;
         public int charWidth { get; set; } = 0;
-        public int glyphWidth { get; set; } = 0;
-        public int leftDistance { get; set; } = 0;
+        public int charAdvance { get; set; } = 0;
+        public int xOffset { get; set; } = 0;
         public KernSecondWord[] kernWords { get; set; } = Array.Empty<KernSecondWord>();
     }
 }
