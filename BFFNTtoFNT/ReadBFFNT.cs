@@ -35,19 +35,19 @@ namespace BFFNTtoFNT
                 switch (fileMagic)
                 {
                     case "FFNT":
-                        ParseHeader(bffnt, file);
+                        ParseFFNT(bffnt, file);
                         break;
                     case "FINF":
-                        ParseFontInfo(bffnt, file);
+                        ParseFINF(bffnt, file);
                         break;
                     case "TGLP":
-                        ParseTextureInfo(bffnt, file);
+                        ParseTGLP(bffnt, file);
                         break;
                     case "CWDH":
-                        ParseCharWidthtInfo(bffnt, file);
+                        ParseCWDH(bffnt, file);
                         break;
                     case "CMAP":
-                        ParseCodeMap(bffnt, file);
+                        ParseCMAP(bffnt, file);
                         break;
                     case "KRNG":
                         ParseKerning(bffnt, file);
@@ -65,7 +65,7 @@ namespace BFFNTtoFNT
         /// <summary>
         /// Parses the FFNT Header
         /// </summary>
-        private void ParseHeader(BFFNT bffnt, EndianStreamReader file)
+        private void ParseFFNT(BFFNT bffnt, EndianStreamReader file)
         {
             EndianType bom = EndianType.LITTLE;
             //Interprets the Byte Order of the file (Might allow for Switch Versions of file)
@@ -117,7 +117,7 @@ namespace BFFNTtoFNT
         /// <summary>
         /// Parses the FINF Header
         /// </summary>
-        private void ParseFontInfo(BFFNT bffnt, EndianStreamReader file)
+        private void ParseFINF(BFFNT bffnt, EndianStreamReader file)
         {
             long initPos = file.Stream.Position-4;
             FontType getFntType()
@@ -178,7 +178,7 @@ namespace BFFNTtoFNT
         /// <summary>
         /// Parses the TGLP Header
         /// </summary>
-        private void ParseTextureInfo(BFFNT bffnt, EndianStreamReader file)
+        private void ParseTGLP(BFFNT bffnt, EndianStreamReader file)
         {
             long initPos = file.Stream.Position-4;
             bffnt.texInfo = new TGLP
@@ -211,7 +211,7 @@ namespace BFFNTtoFNT
         /// <summary>
         /// Parses the CWDH Header
         /// </summary>
-        private void ParseCharWidthtInfo(BFFNT bffnt, EndianStreamReader file)
+        private void ParseCWDH(BFFNT bffnt, EndianStreamReader file)
         {
             RegionRange charWidthRange = new RegionRange
             {
@@ -243,9 +243,8 @@ namespace BFFNTtoFNT
         /// <summary>
         /// Parses the CMAP Header
         /// </summary>
-        private void ParseCodeMap(BFFNT bffnt, EndianStreamReader file)
+        private void ParseCMAP(BFFNT bffnt, EndianStreamReader file)
         {
-            List<CMAP> returnCMAPS = new List<CMAP>();
             MapMethod mapMethod = MapMethod.Direct;
             int firstCharCode;
             int lastCharCode;
@@ -253,12 +252,14 @@ namespace BFFNTtoFNT
             MapMethod getMapMethod()
             {
                 mapMethod = (MapMethod)file.ReadInt16(bffnt.header.endian);
-                file.Position += 2;
+                file.Position += 2; //Padding
                 return mapMethod;
             }
              //Reads the CMAP Data
             void processCharMaps()
             {
+                //NOTES: Writes directly into the charInfo array of the BFFNT object, rather than storing things in the CMAP array. 
+                
                 Character[] chars = bffnt.charInfo;
                 switch (mapMethod)
                 {
@@ -278,32 +279,22 @@ namespace BFFNTtoFNT
                         //}
                         break;
                     case MapMethod.Table:
-                        ThrowException(file, "Table Mapping Method not Implemented yet");
-                        //outCharMap = new CharMap[lastCharCode - firstCharCode];
-                        //for (int i = 0; i < outCharMap.Length; i++)
-                        //{
-                        //    int index = file.ReadInt16(bffnt.header.endian);
-                        //    if(index == 0xFFFF) // Invalid Character check
-                        //    {
-                        //        continue;
-                        //    }
-                        //    CharMap charMap = new CharMap
-                        //    {
-                        //        charCode = index + i,
-                        //        index = i,
-                        //    };
-                        //    outCharMap[i] = charMap;
-                        //}
+                        for (int i = 0; i <= lastCharCode - firstCharCode; i++)
+                        {
+                            int glyphIDX_Table = file.ReadInt16(bffnt.header.endian);
+                            if (glyphIDX_Table == -1) continue; // Skip if glyph index is -1 (invalid)
+                            chars[glyphIDX_Table].charCode = firstCharCode + i;
+                        }
+                        
                         break;
 
                     case MapMethod.Scan:
-                        // new Exception("Scan Mapping Method not Implemented yet");
                         int entries = file.ReadInt16(bffnt.header.endian);
                         for (int i = 0; i < entries; i++)
                         {
                             int charCode = file.ReadInt16(bffnt.header.endian);
-                            int glyphIDX = file.ReadInt16(bffnt.header.endian);
-                            chars[glyphIDX].charCode = charCode;
+                            int glyphIDX_Scan = file.ReadInt16(bffnt.header.endian);
+                            chars[glyphIDX_Scan].charCode = charCode;
                         }
                         break;
                     default:
@@ -311,26 +302,6 @@ namespace BFFNTtoFNT
 
                 }
             }
-
-            //Repeate while the next CMAP Offset is not 0. (0 means there are no more CMAP's) (OLD)
-            //do
-            //{
-            //    long initPos = file.Stream.Position-4;
-            //    CMAP cMAP = new CMAP
-            //    {
-            //        magic = "CMAP",
-            //        secSize = file.ReadInt32(bffnt.header.endian),
-            //        firstCharCode = firstChar = file.ReadInt16(bffnt.header.endian),
-            //        lastCharCode = lastChar = file.ReadInt16(bffnt.header.endian),
-            //        mapType = getMapMethod(),
-            //        mapDataSize = nextCMAPOffset = file.ReadInt32(),
-            //        charMaps = getCharMaps()
-            //    };
-            //    returnCMAPS.Add(cMAP);
-            //    //Set position to end of section.
-            //    file.Stream.Position = initPos + cMAP.secSize;
-            //} while (nextCMAPOffset != 0);
-            //bffnt.charMapInfo = returnCMAPS.ToArray();
             do
             {
                 RegionRange cmapRange = new RegionRange

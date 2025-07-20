@@ -32,11 +32,6 @@ namespace BFFNTtoFNT
             //Get CharacterRect's for Unity Font from BFFNT. 
             CharacterRect[] getCharRects()
             {
-                List<CharMap> chars = new List<CharMap>();
-                foreach (CMAP cmap in wiiU_file.charMapInfo)
-                {
-                    chars.AddRange(cmap.charMaps);
-                }
                 CharacterRect[] outChars = new CharacterRect[wiiU_file.charInfo.Length];
                 float leftDistance;
                 float cellWidth;

@@ -34,8 +34,8 @@ namespace BFFNTtoFNT.Classes
         public FINF fontInfo;
         public TGLP texInfo;
         public CWDH charWidthInfo;
-        public CMAP[] charMapInfo;
         public Character[] charInfo;
+
         public BFFNT(string filename)
         {
             fileDirectory = filename;
@@ -43,7 +43,6 @@ namespace BFFNTtoFNT.Classes
             fontInfo = new FINF();
             texInfo = new TGLP();
             charWidthInfo = new CWDH();
-            charMapInfo = Array.Empty<CMAP>();
             charInfo = Array.Empty<Character>();
         }
         public void ReadBFFNT()
@@ -120,25 +119,10 @@ namespace BFFNTtoFNT.Classes
     {
         public string magic { get; set; } = "";
         public int secSize { get; set; }
-        public int firstCharIndex { get; set; }
-        public int lastCharIndex { get; set; }
+        public int firstCharIDX { get; set; }
+        public int lastCharIDX { get; set; }
         public int widthDataSize { get; set; }
         public CharWidth[] charWidths { get; set; } = Array.Empty<CharWidth>();
-    }
-    public class CMAP
-    {
-        public string magic { get; set; } = "";
-        public int secSize { get; set; }
-        public int firstCharCode { get; set; }
-        public int lastCharCode { get; set; }
-        public MapMethod mapType { get; set; }
-        public int mapDataSize { get; set; }
-        public CharMap[] charMaps { get; set; } = Array.Empty<CharMap>();
-    }
-    public class CharMap
-    {
-        public int charCode { get; set; } = 0;
-        public int index { get; set; } = 0;
     }
     public class CharWidth
     {
