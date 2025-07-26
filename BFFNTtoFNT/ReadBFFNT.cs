@@ -198,12 +198,6 @@ namespace BFFNTtoFNT
                 sheetHeight = file.ReadInt16(bffnt.header.endian),
                 sheetDataOffset = file.ReadInt32(bffnt.header.endian)
             };
-            //Only continue if ther is one texture sheet. 
-            //TODO: Handle Multiple Sheets
-            if(bffnt.texInfo.numOfSheets != 1)
-            {
-                ThrowException(file, "Expected one Texture Sheet, got: " +  bffnt.texInfo.numOfSheets);
-            }
             //Set position to end of section.
             file.Stream.Position = initPos + bffnt.texInfo.secSize;
         }
@@ -264,19 +258,12 @@ namespace BFFNTtoFNT
                 switch (mapMethod)
                 {
                     case MapMethod.Direct:
-                        ThrowException(file, "Direct Mapping Method not Implemented yet");
-                        //outCharMap = new CharMap[lastCharCode - firstCharCode];
-                        //int startIndex = file.ReadInt16(bffnt.header.endian);
-                        //file.Stream.Position += 2;
-                        //for (int i = 0; i < outCharMap.Length; i++)
-                        //{
-                        //    CharMap charMap = new CharMap
-                        //    {
-                        //        charCode = firstCharCode + i,
-                        //        index = startIndex + i,
-                        //    };
-                        //    outCharMap[i] = charMap;
-                        //}
+                        int baseIDX_Direct = file.ReadInt16(bffnt.header.endian);
+                        for (int i = 0; i <= lastCharCode - firstCharCode; i++)
+                        {
+                            chars[baseIDX_Direct + i].charCode = firstCharCode + i;
+                        }
+                        file.Stream.Position += 2;
                         break;
                     case MapMethod.Table:
                         for (int i = 0; i <= lastCharCode - firstCharCode; i++)
@@ -289,11 +276,11 @@ namespace BFFNTtoFNT
                         break;
 
                     case MapMethod.Scan:
-                        int entries = file.ReadInt16(bffnt.header.endian);
+                        int entries = file.ReadUInt16(bffnt.header.endian);
                         for (int i = 0; i < entries; i++)
                         {
-                            int charCode = file.ReadInt16(bffnt.header.endian);
-                            int glyphIDX_Scan = file.ReadInt16(bffnt.header.endian);
+                            int charCode = file.ReadUInt16(bffnt.header.endian);
+                            int glyphIDX_Scan = file.ReadUInt16(bffnt.header.endian);
                             chars[glyphIDX_Scan].charCode = charCode;
                         }
                         break;
@@ -302,24 +289,20 @@ namespace BFFNTtoFNT
 
                 }
             }
-            do
+            RegionRange cmapRange = new RegionRange
             {
-                RegionRange cmapRange = new RegionRange
-                {
-                    StartPosition = file.ActualPosition - 4,
-                    Size = file.ReadInt32(bffnt.header.endian),
-                };
-                file.EnableRegionView(cmapRange); // Enable reading range only for the CMAP section.
-                file.Position += 8; // Skip the bytes we just read.
-                firstCharCode = file.ReadInt16(bffnt.header.endian);
-                lastCharCode = file.ReadInt16(bffnt.header.endian);
-                mapMethod = getMapMethod();
-                nextCMAPOffset = file.ReadInt32(bffnt.header.endian);
-                processCharMaps();
+                StartPosition = file.ActualPosition - 4,
+                Size = file.ReadInt32(bffnt.header.endian),
+            };
+            file.EnableRegionView(cmapRange); // Enable reading range only for the CMAP section.
+            file.Position += 8; // Skip the bytes we just read.
+            firstCharCode = file.ReadUInt16(bffnt.header.endian);
+            lastCharCode = file.ReadUInt16(bffnt.header.endian);
+            mapMethod = getMapMethod();
+            nextCMAPOffset = file.ReadInt32(bffnt.header.endian);
+            processCharMaps();
 
-                file.DisableRegionView(); // Disable reading range after the CMAP section.
-
-            } while (nextCMAPOffset != 0);
+            file.DisableRegionView(); // Disable reading range after the CMAP section.
         }
 
         /// <summary>

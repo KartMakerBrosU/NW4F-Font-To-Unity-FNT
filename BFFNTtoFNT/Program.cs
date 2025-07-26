@@ -29,10 +29,15 @@ namespace BFFNTtoFNT
             BFFNT wiiU_file = new BFFNT(ffnt_filedir);
             wiiU_file.ReadBFFNT();
 
+
+
             //Get CharacterRect's for Unity Font from BFFNT. 
             CharacterRect[] getCharRects()
             {
-                CharacterRect[] outChars = new CharacterRect[wiiU_file.charInfo.Length];
+                int length = wiiU_file.charInfo.Length;
+                //int length = wiiU_file.texInfo.glyphsPerCol * wiiU_file.texInfo.glyphsPerRow;
+
+                CharacterRect[] outChars = new CharacterRect[length];
                 float xOffset;
                 float glyphWidth;
                 float glyphHeight;
@@ -40,13 +45,14 @@ namespace BFFNTtoFNT
                 float sheetHeight;
                 float charWidth;
                 int glyphsPerRow;
+                int glyphsPerCol;
                 int ascent;
                 int baselinepos;
 
 
                 int charAdvance;
 
-                for (int i = 0; i < wiiU_file.charInfo.Length; i++)
+                for (int i = 0; i < length; i++)
                 {
                     glyphWidth = wiiU_file.texInfo.glyphWidth + 1;
                     glyphHeight = wiiU_file.texInfo.glyphHeight;
@@ -56,11 +62,23 @@ namespace BFFNTtoFNT
                     sheetWidth = wiiU_file.texInfo.sheetWidth;
                     sheetHeight = wiiU_file.texInfo.sheetHeight;
                     glyphsPerRow = wiiU_file.texInfo.glyphsPerRow;
+                    glyphsPerCol = wiiU_file.texInfo.glyphsPerCol;
                     ascent = wiiU_file.fontInfo.ascent;
                     baselinepos = wiiU_file.texInfo.baseLinePos;
 
                     int xPos = i % glyphsPerRow;//Which cell in the row. 
                     int yPos = i / glyphsPerRow;//Which row the cell is in.
+
+                    int sheetNo = i / (glyphsPerRow * glyphsPerCol); //Which sheet the glyph is in. 
+                    int yOffset = (int)sheetHeight - (glyphsPerCol * (int)(glyphHeight+1)); //empty space between end of glyphs and end of texture. 
+
+                    float uvX = ((glyphWidth * xPos) + 1) / sheetWidth; // Initial uvX calculation
+                    float uvY = ((glyphHeight * yPos) + 1 + glyphHeight + yPos) / sheetHeight; //Iniital uvY calculation
+
+                    uvY += (yOffset * sheetNo)/sheetHeight;//"Clamp" the UV's to the nearest sheet. 
+
+                    float newUV_Y = (sheetNo + 1) - uvY + sheetNo; //Remap to match unity's bottom-left origin from WiiU's top-right. 
+
                     outChars[i] = new CharacterRect
                     {
                         serializedVersion = 2,
@@ -69,7 +87,7 @@ namespace BFFNTtoFNT
                         {
                             serializedVersion = 2,
                             x = ((glyphWidth * xPos) + 1) / sheetWidth,
-                            y = 1 - (((glyphHeight * yPos) + 1 + glyphHeight + yPos) / sheetHeight),
+                            y = newUV_Y,
 
                             width = charWidth / sheetWidth,
                             height = glyphHeight / sheetHeight,
