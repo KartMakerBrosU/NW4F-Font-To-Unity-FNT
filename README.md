@@ -14,8 +14,9 @@
 You can now use this font anywhere in your project.
 
 ## Notice
-The FontSettings file will only display the Main Texture of the material without shader effects.
-If you want the shader to modify the text, add the Material into the `Material` slot of the Legacy Text GameObject
+- The FontSettings file will only display the Main Texture of the material without shader effects.
+If you want the shader to modify the text, add the Material into the `Material` slot of the Legacy Text GameObject.
+- Unity may spit an error if it can't assign the `_MainTex` property to a Texture2DArray, in such a case create a dummy `_MainTex` propery and use a different name for the texture array.
 
 ## Credits
 - kinnay for Nintendo-File-Format site used for Documentation.
