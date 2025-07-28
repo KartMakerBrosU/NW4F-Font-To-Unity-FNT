@@ -66,6 +66,9 @@ namespace BFFNTtoFNT
                     ascent = wiiU_file.fontInfo.ascent;
                     baselinepos = wiiU_file.texInfo.baseLinePos;
 
+                    //the grid is offset from the top left by 1 px. 
+                    //the glyphHeight is 1+glyphHeight
+
                     int xPos = i % glyphsPerRow;//Which cell in the row. 
                     int yPos = i / glyphsPerRow;//Which row the cell is in.
 
@@ -73,11 +76,11 @@ namespace BFFNTtoFNT
                     int yOffset = (int)sheetHeight - (glyphsPerCol * (int)(glyphHeight+1)); //empty space between end of glyphs and end of texture. 
 
                     float uvX = ((glyphWidth * xPos) + 1) / sheetWidth; // Initial uvX calculation
-                    float uvY = ((glyphHeight * yPos) + 1 + glyphHeight + yPos) / sheetHeight; //Iniital uvY calculation
+                    float uvY = ((glyphHeight + 1) * (yPos+1) + 1) / sheetHeight;//Iniital uvY calculation
 
-                    uvY += (yOffset * sheetNo)/sheetHeight;//"Clamp" the UV's to the nearest sheet. 
+                    uvY += (yOffset * sheetNo)/sheetHeight;//Move the UV's to the nearest sheet.(integer values)
 
-                    float newUV_Y = (sheetNo + 1) - uvY + sheetNo; //Remap to match unity's bottom-left origin from WiiU's top-right. 
+                    float unity_uvY = (sheetNo + 1) - uvY + sheetNo; //Remap to match unity's bottom-left origin from WiiU's top-right. 
 
                     outChars[i] = new CharacterRect
                     {
@@ -87,7 +90,7 @@ namespace BFFNTtoFNT
                         {
                             serializedVersion = 2,
                             x = ((glyphWidth * xPos) + 1) / sheetWidth,
-                            y = newUV_Y,
+                            y = unity_uvY,
 
                             width = charWidth / sheetWidth,
                             height = glyphHeight / sheetHeight,
