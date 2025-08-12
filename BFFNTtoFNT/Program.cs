@@ -76,7 +76,7 @@ namespace BFFNTtoFNT
                     int yOffset = (int)sheetHeight - (glyphsPerCol * (int)(glyphHeight+1)); //empty space between end of glyphs and end of texture. 
 
                     float uvX = ((glyphWidth * xPos) + 1) / sheetWidth; // Initial uvX calculation
-                    float uvY = ((glyphHeight + 1) * (yPos+1) + 1) / sheetHeight;//Iniital uvY calculation
+                    float uvY = ((glyphHeight + 1) * (yPos+1)) / sheetHeight;//Iniital uvY calculation
 
                     uvY += (yOffset * sheetNo)/sheetHeight;//Move the UV's to the nearest sheet.(integer values)
 
@@ -154,7 +154,7 @@ namespace BFFNTtoFNT
                     },
                     m_Name = Path.GetFileNameWithoutExtension(wiiU_file.fileDirectory),
                     serializedVersion = 5,
-                    m_LineSpacing = wiiU_file.fontInfo.height,
+                    m_LineSpacing = wiiU_file.fontInfo.lineFeed,
                     m_DefaultMaterial = new Dictionary<string, string>
                     {
                         { "fileID", "0" },
