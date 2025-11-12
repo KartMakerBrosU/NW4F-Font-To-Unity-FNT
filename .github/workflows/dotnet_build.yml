@@ -1,0 +1,28 @@
+name: Build C# Project
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'  # or your target version
+
+    - name: Restore dependencies
+      run: dotnet restore BFFNTtoFNT.sln
+
+    - name: Build
+      run: dotnet build BFFNTtoFNT.sln --configuration Release
+
+    - name: Run tests
+      run: dotnet test BFFNTtoFNT.sln --no-build --verbosity normal
